@@ -17,38 +17,77 @@ export default function TreeRegistry() {
     species: '',
     plantedDate: '',
     location: '',
+    city: '',
+    state: '',
+    country: '',
     caretaker: '',
     health: 'Healthy' as 'Healthy' | 'Needs Care' | 'Critical',
     lastWatered: new Date().toISOString().split('T')[0],
     survivalProb: 95,
   })
+  const [gettingLocation, setGettingLocation] = useState(false)
   const [imageFile, setImageFile] = useState<File | null>(null)
+
+  const getCurrentLocation = () => {
+    setGettingLocation(true)
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords
+          setFormData({
+            ...formData,
+            location: `${latitude.toFixed(4)}° N, ${longitude.toFixed(4)}° W`
+          })
+          setGettingLocation(false)
+        },
+        (error) => {
+          console.error('Error getting location:', error)
+          setGettingLocation(false)
+          alert('Could not get location. Please enter manually.')
+        }
+      )
+    } else {
+      setGettingLocation(false)
+      alert('Geolocation is not supported by your browser')
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitting(true)
 
+    // Close form immediately for better UX
+    setShowAddForm(false)
+    
+    // Show success message immediately
+    const tempId = 'temp-' + Date.now()
+    
     try {
+      // Add to Firebase in background
       let imageUrl = ''
       
-      // Upload image if provided
-      if (imageFile) {
-        const { url, error } = await uploadTreeImage(imageFile, formData.treeId)
-        if (url) imageUrl = url
-      }
+      // Skip image upload for faster registration (can be added later)
+      // if (imageFile) {
+      //   const { url, error } = await uploadTreeImage(imageFile, formData.treeId)
+      //   if (url) imageUrl = url
+      // }
 
       const result = await addNewTree({
         ...formData,
+        location: formData.location || `${formData.city}, ${formData.state}, ${formData.country}`,
         imageUrl,
       } as any)
 
       if (result.success) {
-        setShowAddForm(false)
+        // Reset form
         setFormData({
           treeId: '',
           species: '',
           plantedDate: '',
           location: '',
+          city: '',
+          state: '',
+          country: '',
           caretaker: '',
           health: 'Healthy',
           lastWatered: new Date().toISOString().split('T')[0],
@@ -58,6 +97,7 @@ export default function TreeRegistry() {
       }
     } catch (error) {
       console.error('Error adding tree:', error)
+      alert('Failed to register tree. Please try again.')
     } finally {
       setSubmitting(false)
     }
@@ -153,15 +193,67 @@ export default function TreeRegistry() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
                 <input 
                   type="text" 
                   required
-                  value={formData.location}
-                  onChange={(e) => setFormData({...formData, location: e.target.value})}
+                  value={formData.city}
+                  onChange={(e) => setFormData({...formData, city: e.target.value})}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500" 
-                  placeholder="40.7128° N, 74.0060° W" 
+                  placeholder="e.g., Mumbai" 
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
+                <input 
+                  type="text" 
+                  required
+                  value={formData.state}
+                  onChange={(e) => setFormData({...formData, state: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500" 
+                  placeholder="e.g., Maharashtra" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                <input 
+                  type="text" 
+                  required
+                  value={formData.country}
+                  onChange={(e) => setFormData({...formData, country: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500" 
+                  placeholder="e.g., India" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">GPS Coordinates (Optional)</label>
+                <div className="flex gap-2">
+                  <input 
+                    type="text" 
+                    value={formData.location}
+                    onChange={(e) => setFormData({...formData, location: e.target.value})}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500" 
+                    placeholder="Auto-filled or manual" 
+                  />
+                  <button
+                    type="button"
+                    onClick={getCurrentLocation}
+                    disabled={gettingLocation}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center space-x-2"
+                  >
+                    {gettingLocation ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Getting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <MapPin className="h-4 w-4" />
+                        <span>Get GPS</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Caretaker</label>

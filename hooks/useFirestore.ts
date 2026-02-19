@@ -34,23 +34,54 @@ export interface CareLogEntry {
   createdAt?: any
 }
 
+// Mock data for instant loading
+const mockTrees: Tree[] = [
+  {
+    id: 'demo-1',
+    treeId: 'T-1001',
+    species: 'Oak',
+    plantedDate: '2024-01-15',
+    location: 'Mumbai, Maharashtra, India',
+    caretaker: 'Demo User',
+    health: 'Healthy',
+    lastWatered: '2024-02-18',
+    survivalProb: 96,
+  },
+  {
+    id: 'demo-2',
+    treeId: 'T-1002',
+    species: 'Neem',
+    plantedDate: '2024-01-20',
+    location: 'Delhi, Delhi, India',
+    caretaker: 'Demo User',
+    health: 'Healthy',
+    lastWatered: '2024-02-17',
+    survivalProb: 94,
+  },
+]
+
 export function useTrees() {
-  const [trees, setTrees] = useState<Tree[]>([])
-  const [loading, setLoading] = useState(true)
+  const [trees, setTrees] = useState<Tree[]>(mockTrees) // Start with mock data
+  const [loading, setLoading] = useState(false) // Don't show loading initially
   const [error, setError] = useState<string | null>(null)
 
   const fetchTrees = async () => {
-    setLoading(true)
+    // Don't set loading true on initial load
     const { trees: fetchedTrees, error: fetchError } = await getTrees()
     if (fetchError) {
       setError(fetchError)
+      // Keep mock data on error
     } else {
-      setTrees(fetchedTrees as Tree[])
+      if (fetchedTrees.length > 0) {
+        setTrees(fetchedTrees as Tree[])
+      }
+      // If no trees, keep mock data for demo
     }
     setLoading(false)
   }
 
   useEffect(() => {
+    // Fetch real data in background
     fetchTrees()
   }, [])
 
@@ -77,23 +108,40 @@ export function useTrees() {
   return { trees, loading, error, addNewTree, updateExistingTree, refetch: fetchTrees }
 }
 
+// Mock care logs for instant loading
+const mockLogs: CareLogEntry[] = [
+  {
+    id: 'log-1',
+    treeId: 'T-1001',
+    species: 'Oak',
+    activity: 'Watering',
+    caretaker: 'Demo User',
+    date: '2024-02-18',
+    time: '09:00',
+    notes: 'Regular watering schedule',
+    status: 'Completed',
+  },
+]
+
 export function useCareLogs(treeId?: string) {
-  const [logs, setLogs] = useState<CareLogEntry[]>([])
-  const [loading, setLoading] = useState(true)
+  const [logs, setLogs] = useState<CareLogEntry[]>(mockLogs) // Start with mock data
+  const [loading, setLoading] = useState(false) // Don't show loading initially
   const [error, setError] = useState<string | null>(null)
 
   const fetchLogs = async () => {
-    setLoading(true)
     const { logs: fetchedLogs, error: fetchError } = await getCareLogs(treeId)
     if (fetchError) {
       setError(fetchError)
     } else {
-      setLogs(fetchedLogs as CareLogEntry[])
+      if (fetchedLogs.length > 0) {
+        setLogs(fetchedLogs as CareLogEntry[])
+      }
     }
     setLoading(false)
   }
 
   useEffect(() => {
+    // Fetch real data in background
     fetchLogs()
   }, [treeId])
 

@@ -115,6 +115,26 @@ export default function Home() {
             </div>
             
             <div className="flex items-center space-x-4">
+              {/* Quick Actions - Admin Only */}
+              {userRole === 'admin' && (
+                <div className="hidden lg:flex items-center space-x-2">
+                  <button
+                    onClick={() => setActiveTab('registry')}
+                    className="flex items-center space-x-2 px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors"
+                  >
+                    <TreePine className="h-4 w-4" />
+                    <span className="text-sm font-medium">Quick Register</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('care')}
+                    className="flex items-center space-x-2 px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors"
+                  >
+                    <Users className="h-4 w-4" />
+                    <span className="text-sm font-medium">Add Care Log</span>
+                  </button>
+                </div>
+              )}
+
               {/* User Info */}
               <div className="hidden sm:block text-right">
                 <p className="text-sm font-medium text-white">{userEmail}</p>
