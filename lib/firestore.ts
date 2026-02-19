@@ -1,94 +1,91 @@
-import { 
-  collection, 
-  addDoc, 
-  getDocs, 
-  doc, 
-  updateDoc, 
+import {
+  collection,
+  addDoc,
+  getDocs,
+  doc,
+  updateDoc,
   deleteDoc,
   query,
   where,
-  orderBy,
-  Timestamp
-} from 'firebase/firestore';
-import { db } from './firebase';
+  serverTimestamp,
+  Query,
+} from "firebase/firestore"
+import { db } from "./firebase"
 
-// Tree operations
-export const addTree = async (treeData: any) => {
+// ----------------------------
+// Add Care Log
+// ----------------------------
+export async function addCareLog(data: {
+  treeId: string
+  caretakerName: string
+  notes: string
+}) {
   try {
-    const docRef = await addDoc(collection(db, 'trees'), {
-      ...treeData,
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now()
-    });
-    return { id: docRef.id, error: null };
-  } catch (error: any) {
-    return { id: null, error: error.message };
+    const docRef = await addDoc(collection(db, "careLogs"), {
+      ...data,
+      createdAt: serverTimestamp(),
+    })
+    return docRef.id
+  } catch (error) {
+    console.error("Error adding care log:", error)
+    throw error
   }
-};
+}
 
-export const getTrees = async () => {
+// ----------------------------
+// Get Care Logs (With Optional treeId Filter)
+// ----------------------------
+export async function getCareLogs(treeId?: string) {
   try {
-    const querySnapshot = await getDocs(collection(db, 'trees'));
-    const trees = querySnapshot.docs.map(doc => ({
+    const baseCollection = collection(db, "careLogs")
+
+    const q: Query = treeId
+      ? query(baseCollection, where("treeId", "==", treeId))
+      : query(baseCollection)
+
+    const querySnapshot = await getDocs(q)
+
+    return querySnapshot.docs.map((doc) => ({
       id: doc.id,
-      ...doc.data()
-    }));
-    return { trees, error: null };
-  } catch (error: any) {
-    return { trees: [], error: error.message };
+      ...doc.data(),
+    }))
+  } catch (error) {
+    console.error("Error fetching care logs:", error)
+    throw error
   }
-};
+}
 
-export const updateTree = async (treeId: string, updates: any) => {
-  try {
-    const treeRef = doc(db, 'trees', treeId);
-    await updateDoc(treeRef, {
-      ...updates,
-      updatedAt: Timestamp.now()
-    });
-    return { error: null };
-  } catch (error: any) {
-    return { error: error.message };
+// ----------------------------
+// Update Care Log
+// ----------------------------
+export async function updateCareLog(
+  id: string,
+  data: {
+    caretakerName?: string
+    notes?: string
   }
-};
+) {
+  try {
+    const docRef = doc(db, "careLogs", id)
+    await updateDoc(docRef, {
+      ...data,
+      updatedAt: serverTimestamp(),
+    })
+  } catch (error) {
+    console.error("Error updating care log:", error)
+    throw error
+  }
+}
 
-export const deleteTree = async (treeId: string) => {
+// ----------------------------
+// Delete Care Log
+// ----------------------------
+export async function deleteCareLog(id: string) {
   try {
-    await deleteDoc(doc(db, 'trees', treeId));
-    return { error: null };
-  } catch (error: any) {
-    return { error: error.message };
+    const docRef = doc(db, "careLogs", id)
+    await deleteDoc(docRef)
+  } catch (error) {
+    console.error("Error deleting care log:", error)
+    throw error
   }
-};
-
-// Care log operations
-export const addCareLog = async (logData: any) => {
-  try {
-    const docRef = await addDoc(collection(db, 'careLogs'), {
-      ...logData,
-      createdAt: Timestamp.now()
-    });
-    return { id: docRef.id, error: null };
-  } catch (error: any) {
-    return { id: null, error: error.message };
-  }
-};
-
-export const getCareLogs = async (treeId?: string) => {
-  try {
-    let q = collection(db, 'careLogs');
-    
-    if (treeId) {
-      q = query(collection(db, 'careLogs'), where('treeId', '==', treeId));
-    }
-    
-    const querySnapshot = await getDocs(q);
-    const logs = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-    return { logs, error: null };
-  } catch (error: any) {
-    return { logs: [], error: error.message };
-  }
-};
+}
