@@ -135,10 +135,10 @@ export default function Home() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {activeTab === 'dashboard' && <Dashboard />}
-        {activeTab === 'registry' && <TreeRegistry />}
+        {activeTab === 'dashboard' && <Dashboard userRole="admin" />}
+        {activeTab === 'registry' && <TreeRegistry userRole="visitor" />}
         {activeTab === 'care' && <CareLog />}
-        {activeTab === 'analytics' && <Analytics />}
+        {activeTab === 'analytics' && <Analytics userRole="visitor" />}
       </main>
     </div>
   )
