@@ -1,0 +1,3 @@
+treeId,species,plantedDate,location,latitude,longitude,caretaker,health,lastWatered,survivalProb
+T-1001,Oak,2024-01-15,Central Park,40.7829,-73.9654,John Doe,Healthy,2024-02-18,96
+T-1002,Maple,2024-01-20,Riverside Park,40.7957,-73.9389,Jane Smith,Needs Care,2024-02-15,82
